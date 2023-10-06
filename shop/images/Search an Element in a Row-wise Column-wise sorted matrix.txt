@@ -1,0 +1,99 @@
+Search an Element in a Row-wise Column-wise sorted matrix
+Given an m x n matrix and a target value, find the position of the target value in the matrix if it is present in it. Otherwise, print “Not Found”. In the given matrix, every row and column is sorted in increasing order.
+
+Example 1:
+
+Input: matrix[4][4] = { {10, 20, 30, 40},
+                      {15, 25, 35, 45},
+                      {27, 29, 37, 48},
+                      {32, 33, 39, 50}};
+              target = 29
+Output: Found at (2, 1)
+Explanation: Element at (2,1) is 29
+Example 2:
+
+Input : matrix[4][4] = { {10, 20, 30, 40},
+                      {15, 25, 35, 45},
+                      {27, 29, 37, 48},
+                      {32, 33, 39, 50}};
+              target = 100
+Output : Element not found
+Explanation: Element 100 is not found
+
+Binary Search solution for searching an element in a Row-wise Column-wise sorted matrix
+We can work based on the fact that the matrix is sorted row-wise and column-wise and apply Binary search to find the element.
+
+Start with the top-right corner of the matrix (i=0, j=n-1).
+If target == matrix[i][j], return {i, j}.
+If target < matrix[i][j], then we can discard column j because all the other elements in column j will be greater than target since the column is sorted in ascending order.
+Otherwise, if target > matrix[i][j], then we can discard row i because all the elements in row i will be smaller than target since the row is sorted in ascending order and we’re already at the rightmost element in that row.
+class SearchInRowWiseColWiseSortedArray {
+    private static int[] search(int[][] matrix, int target) {
+        if (matrix.length == 0) {
+            return new int[]{-1, -1};
+        }
+
+        int numRows = matrix.length;
+        int numCols = matrix[0].length;
+
+        int i = 0;
+        int j = numCols - 1;
+
+        while (i >= 0 && i < numRows && j >= 0 && j < numCols) {
+            if (target == matrix[i][j]) {
+                return new int[]{i, j};
+            } else if (target < matrix[i][j]) {
+                j--;
+            } else {
+                i++;
+            }
+        }
+
+        return new int[]{-1, -1};
+    }
+
+    public static void main(String[] args) {
+        int[][] matrix = { 
+            { 10, 20, 30, 40 }, 
+            { 15, 25, 35, 45 }, 
+            { 27, 29, 37, 48 }, 
+            { 32, 33, 39, 50 } 
+        };
+
+        int target = 29;
+
+        int[] result = search(matrix, target);
+
+        if(result[0] != -1 && result[1] != -1) {
+            System.out.printf("%d is found at (%d, %d)%n", target, result[0], result[1]);
+        } else {
+            System.out.printf("Element not found");
+        }
+    }
+}
+
+
+
+
+ANOTHER METHOD USING BOOLEAN FUNCTION:-
+
+class Solution 
+{ 
+    //Function to search a given number in row-column sorted matrix.
+	static boolean search(int matrix[][], int n, int m, int x) 
+	{  
+	    // code here 
+	      int i=0;
+        int j=m-1;
+        while(i<n && j>=0){
+            if(matrix[i][j]==x)
+            return true;
+            else if(matrix[i][j]>x)
+            j--;
+            else 
+            i++;
+        }
+        return false;
+	} 
+} 
+

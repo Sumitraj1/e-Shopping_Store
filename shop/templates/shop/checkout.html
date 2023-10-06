@@ -1,0 +1,236 @@
+{% extends 'shop/basic.html' %}
+{% block title %} Title of about{% endblock %}
+
+{% block body %} 
+<div class="container">
+    <div class="col my-4">
+        <h2>Step 1 - Pandya Store Express Checkout - Review Your Cart Items</h2>
+        <div>
+            <ul class="list-group" id="items">
+                
+                {% comment %} <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Cras justo odio
+                    <span class="badge badge-primary badge-pill">14</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Dapibus ac facilisis in
+                    <span class="badge badge-primary badge-pill">2</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Morbi leo risus
+                    <span class="badge badge-primary badge-pill">1</span>
+                </li> {% endcomment %}
+                
+            </ul>
+
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mt-3">
+                    <li class="breadcrumb-item active" aria-current="page">Your Cart Total Is <b>Rs.<span id="totalPrice"></b></span>    Enter your details below & place your order. Thanks for using Pandya Store!</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    <div class="col my-4">
+        <h2>Step 2 - Enter Address & Other Details:</h2>
+        <form method="POST" action="/shop/checkout/" id="details">{% csrf_token %}
+             <input type="hidden" name="itemsJson" id="itemsJson">
+             <input type="hidden" name="amount" id="amount">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputname">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Name">
+                    <div class="error"></div>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="inputEmail4">Email</label>
+                    <input type="email" class="form-control" id="email"  name="email" placeholder="Email">
+                    <div class="error"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputAddress">Address</label>
+                <input type="text" class="form-control" id="address1"  name="address1" placeholder="Address ">
+                <div class="error"></div>
+            </div>
+            <div class="form-group">
+                <label for="inputAddress2">Locality</label>
+                <input type="text" class="form-control" id="address2"  name="address2" placeholder="Apartment, studio, or floor">
+                <div class="error"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputCity">City</label>
+                    <input type="text" class="form-control" id="city"  name="city">
+                    <div class="error"></div>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="inputState">State</label>
+                    <input type="text" class="form-control" id="state"  name="state" placeholder="Enter State">
+                    <div class="error"></div>
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="inputZip">Zip</label>
+                    <input type="text" class="form-control" id="zip_code"  name="zip_code" placeholder="Enter zip">
+                    <div class="error"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                    <label for="inputZip">Phone Number</label>
+                    <input type="text" class="form-control" id="Phone"  name="phone" placeholder="Enter phone">
+                    <div class="error"></div>
+                </div>
+            <button type="submit" class="btn btn-primary">Place Order</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+if (localStorage.getItem('cart') == null) {
+    var cart = {};
+} else {
+    cart = JSON.parse(localStorage.getItem('cart'));
+}
+//console.log(cart);
+var sum = 0;
+var totalPrice=0;
+if ($.isEmptyObject(cart)) {
+    //if object is empty
+    mystr = `<h5>Your cart is empty, please add some items to your cart before checking out!</h5>`
+    $('#items').append(mystr);
+} else {
+    for (item in cart) {
+        let name = cart[item][1];
+        let qty = cart[item][0];
+        let itemPrice = cart[item][2];
+        sum = sum + qty;
+        totalPrice = totalPrice + qty * itemPrice;
+        mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${name}
+                    <span class="badge badge-primary badge-pill">${qty}</span>
+                </li>`
+        $('#items').append(mystr);
+    }
+}
+document.getElementById('cart').innerHTML = sum;
+document.getElementById('totalPrice').innerHTML = totalPrice;
+
+$('#itemsJson').val(JSON.stringify(cart));
+{% if thank %}
+alert("Thanks for ordering with us. Your order id is {{id}}. Use it to track your order using our order tracker")
+localStorage.clear();
+document.location="/shop";
+{%endif%}
+
+//paytm section
+$('#amount').val($('#totalPrice').html())
+
+
+
+//validate form
+const details = document.getElementById('details');
+const name = document.getElementById('name');
+const email = document.getElementById('email');
+const address1 = document.getElementById('address1');
+const address2 = document.getElementById('address2');
+const city = document.getElementById('city');
+const state = document.getElementById('state');
+const zip_code = document.getElementById('zip_code');
+const phone = document.getElementById('phone');
+
+details.addEventListener('submit', e => {
+    e.preventDefault();
+
+    validateInputs();
+});
+
+const setError = (element, message) => {
+    const inputControl = element.parentElement;
+    const errorDisplay = inputControl.querySelector('.error');
+
+    errorDisplay.innerText = message;
+    inputControl.classList.add('error');
+    inputControl.classList.remove('success')
+};
+
+const setSuccess = element => {
+    const inputControl = element.parentElement;
+    const errorDisplay = inputControl.querySelector('.error');
+
+    errorDisplay.innerText = '';
+    inputControl.classList.add('success');
+    inputControl.classList.remove('error');
+};
+
+const isValidEmail = email => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
+const validateInputs = () => {
+    const nameValue = name.value.trim();
+    const emailValue = email.value.trim();
+    const address1Value = address1.value.trim();
+    const address2Value = address2.value.trim();
+    const cityValue = city.value.trim();
+    const stateValue = state.value.trim();
+    const zip_codeValue = zip_code.value.trim();
+   // const phoneValue = phone.value.trim();
+
+
+    if(nameValue === '') {
+        setError(name, 'name is required');
+    } else {
+        setSuccess(name);
+    }
+
+    if(emailValue === '') {
+        setError(email, 'Email is required');
+    } else if (!isValidEmail(emailValue)) {
+        setError(email, 'Provide a valid email address');
+    } else {
+        setSuccess(email);
+    }
+
+    if(address1Value === '') {
+        setError(address1, 'Address is required');
+    }  else {
+        setSuccess(address1);
+    }
+
+    if(address2Value === '') {
+        setError(address2, 'Address is required');
+    }  else {
+        setSuccess(address2);
+    }
+    if(cityValue === '') {
+        setError(city, 'City is required');
+    }  else {
+        setSuccess(city);
+    }
+
+    if(stateValue === '') {
+        setError(state, 'State is required');
+    }  else {
+        setSuccess(state);
+    if(zip_codeValue === '') {
+        setError(zip_code, 'zip code is required');
+    }  else {
+        setSuccess(zip_code);
+    }
+
+    if(phoneValue === '') {
+        setError(phone, 'Phone is required');
+    }  else {
+        setSuccess(phone);
+    }
+    };
+};
+
+ 
+
+
+
+</script>
+{% endblock %}

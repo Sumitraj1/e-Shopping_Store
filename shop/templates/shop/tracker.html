@@ -1,0 +1,184 @@
+{% extends 'shop/basic.html' %}
+{% block title %} Title of about{% endblock %}
+
+{% block body %} 
+
+<div class="container">
+    <div class="col my-4">
+        <h2>Enter Your Order Id And Email To Track Your Order</h2>
+        <form method="POST" action="#" id="trackerForm">{% csrf_token %}
+            {% comment %} <input type="hidden" name="itemsJson" id="itemsJson"> {% endcomment %}
+           <div class="form-row">
+               <div class="form-group col-md-6">
+                   <label for="inputname">Order Id</label>
+                   <input type="text" class="form-control" id="orderId" name="orderId" placeholder="Order Id">
+                   <div class="error"></div>
+               </div>
+               <div class="form-group col-md-6">
+                   <label for="inputEmail4">Email</label>
+                   <input type="email" class="form-control" id="email"  name="email" placeholder="Email">
+                   <div class="error"></div>
+               </div>
+               <button type="submit" class="btn btn-primary">Track Order</button>
+           </div>
+
+            
+                
+                {% comment %} <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Cras justo odio
+                    <span class="badge badge-primary badge-pill">14</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Dapibus ac facilisis in
+                    <span class="badge badge-primary badge-pill">2</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Morbi leo risus
+                    <span class="badge badge-primary badge-pill">1</span>
+                </li> {% endcomment %}
+                
+            
+        
+    </div>
+    <div class="col my-4">
+        <h2>Your Order Status :</h2>
+        <div class="my-4">
+            <ul class="list-group" id="items">
+            </ul>
+        </div>
+       
+    </div>
+
+    <div class="col my-4">
+        <h2>Your product Details :</h2>
+        <div class="my-4">
+            <ul class="list-group" id="citems">
+            </ul>
+        </div>
+       
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+    $('#trackerForm').submit(function(event) {
+        $('#items').empty();
+        var formData = {
+            'orderId': $('input[name=orderId]').val(),
+            'email': $('input[name=email]').val(),
+            'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+        };
+        $.ajax({
+                type: 'POST',
+                url: '/shop/tracker/',
+                data: formData,
+                encode: true
+            })
+            .done(function(data) {
+                $('#citems').empty();
+                console.log(data)
+                data=JSON.parse(data);
+                
+                if (data['status'] == 'success') {
+                    updates = data['updates'];
+                    for (i = 0; i < updates.length; i++) {
+                        let text = updates[i]['text'];
+                        let time = updates[i]['time'];
+                        mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        ${text}
+                        <span class="badge badge-primary badge-pill">${time}</span>
+                    </li>`
+                        $('#items').append(mystr);
+                    }
+                       //fill in the Order Details
+                    cart = JSON.parse(data['itemsJson']);
+                    console.log(cart);
+                    for (item in cart) {
+                        let name = cart[item][1];
+                        let qty = cart[item][0];
+                         mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                             ${name}
+                             <span class="badge badge-primary badge-pill">${qty}</span>
+                        </li>`
+                        $('#citems').append(mystr);
+                     }
+                
+
+                } else {
+                    mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        Sorry, We are not able to fetch this order id and email. Make sure to type correct order Id and email</li>`
+
+                    $('#items').append(mystr);
+                    $('#citems').append(mystr);
+                }
+                
+             
+            
+              
+            });
+        event.preventDefault();
+    });
+
+
+    //adding form validating;
+
+    const form=document.getElementById('trackerForm');
+    const orderid=document.getElementById('orderId');
+    const email=document.getElementById('email');
+
+    form.addEventListener('submit', e=>{
+        e.preventDefault();
+        validateInputs();
+    });
+
+    const setError=(element,message)=>{
+        const inputControl=element.parentElement;
+        const errorDisplay=inputControl.querySelector('.error');
+
+        errorDisplay.innerText=message;
+        inputControl.classList.add('error');
+        inputControl.classList.remove('success')
+    };
+
+    const setSuccess=element=>{
+        const inputControl=element.parentElement;
+        const errorDisplay=inputControl.querySelector('.error');
+
+        errorDisplay.innerText='';
+        inputControl.classList.add('success');
+        inputControl.classList.remove('error')
+    };
+
+    const isValidEmail=email=>{
+        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+    }
+
+    const validateInputs=()=>{
+        const orderidValue=orderid.value.trim();
+        const emailValue=email.value.trim();
+
+        if(orderidValue==''){
+            setError(orderid,'orderid is required');
+        }
+        else{
+            setSuccess(orderid);
+        }
+
+        if(emailValue==''){
+            setError(email,'Email is requires');
+        }
+        else if(!isValidEmail(emailvalue)){
+            setError(email,'provide a valid email address');
+        }    
+            
+        
+        else{
+            setSuccess(email);
+        }
+    };
+
+
+</script>
+{% endblock %}

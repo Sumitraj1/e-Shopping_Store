@@ -1,0 +1,113 @@
+{% extends 'shop/basic.html' %}
+{% block title %} Title of about{% endblock %}
+
+{% block body %} 
+
+<div class="container">
+    <h3>Contact Us</h3>
+    <form action="/shop/contact/" method="post" id="contact">{% csrf_token %}
+ <div class="form-group">
+   <label for="name">Name</label>
+   <input type="text" class="form-control" id="name" name="name" placeholder="Enter Your Name">
+   <div class="error"></div>
+ </div>
+         <div class="form-group">
+   <label for="name">Email</label>
+   <input type="email" class="form-control" id="email" name="email" placeholder="Enter Your Email">
+   <div class="error"></div>
+ </div>
+         <div class="form-group">
+   <label for="name">Phone</label>
+   <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter Your Phone Number">
+   <div class="error"></div>
+ </div>
+  
+  <div class="form-group">
+   <label for="desc">How May We Help You ?</label>
+   <textarea class="form-control" id="desc" name="desc" rows="3"></textarea>
+   <div class="error"></div>
+  </form>
+  <button type="submit" class="btn btn-success my-4">Submit</button>
+ </div>
+
+
+ {% endblock %}
+
+ {%block js%}
+<script>
+{% if thank %}
+alert('Thanks for contacting us. We wil get back to you soon!');
+document.location = "/shop";
+{%endif%}
+
+
+const contact = document.getElementById('contact');
+const name = document.getElementById('name');
+const email = document.getElementById('email');
+const phone = document.getElementById('phone');
+
+
+contact.addEventListener('submit', e => {
+    e.preventDefault();
+
+    validateInputs();
+});
+
+const setError = (element, message) => {
+    const inputControl = element.parentElement;
+    const errorDisplay = inputControl.querySelector('.error');
+
+    errorDisplay.innerText = message;
+    inputControl.classList.add('error');
+    inputControl.classList.remove('success')
+}
+
+const setSuccess = element => {
+    const inputControl = element.parentElement;
+    const errorDisplay = inputControl.querySelector('.error');
+
+    errorDisplay.innerText = '';
+    inputControl.classList.add('success');
+    inputControl.classList.remove('error');
+};
+
+
+const isValidEmail = email => {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+
+
+const validateInputs = () => {
+  const nameValue = name.value.trim();
+  const emailValue = email.value.trim();
+  const phoneValue = phone.value.trim();
+    
+
+    if(nameValue === '') {
+        setError(name, 'name is required');
+    } else {
+        setSuccess(name);
+    }
+
+    if(emailValue === '') {
+        setError(email, 'Email is required');
+    } else if (!isValidEmail(emailValue)) {
+        setError(email, 'Provide a valid email address');
+    } else {
+        setSuccess(email);
+    }
+
+    if(phoneValue === '') {
+        setError(phone, 'Phone Number is required');
+    
+    } else {
+        setSuccess(phone);
+    }
+
+    
+
+};
+
+</script>
+{%endblock%}
